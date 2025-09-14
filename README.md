@@ -1,5 +1,9 @@
 # Multi-Tenant SaaS Notes Application
 
+Live Frontend : https://saas-task-manager-zlzy-lwtzlfgy1-first2lasts-projects.vercel.app/
+
+Live Backend : https://saas-task-manager-e3ogdmvna-first2lasts-projects.vercel.app/
+
 A complete multi-tenant SaaS notes application built with the MERN stack and TypeScript, featuring role-based access control and subscription-based feature gating.
 
 ## Multi-Tenancy Architecture
