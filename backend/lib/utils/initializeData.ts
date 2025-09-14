@@ -1,33 +1,10 @@
-import mongoose from 'mongoose';
-import app from './app';
-import { config } from './config';
-import { Tenant } from './models/Tenant';
-import { User } from './models/User';
 import bcrypt from 'bcryptjs';
+import { Tenant } from '../models/Tenant';
+import { User } from '../models/User';
 
-const startServer = async () => {
+export const initializeTestData = async () => {
   try {
-    // Connect to MongoDB
-    await mongoose.connect(config.mongoUri);
-    console.log('Connected to MongoDB');
-
-    // Initialize test data
-    await initializeTestData();
-
-    // For Vercel, we don't need to listen on a port
-    if (process.env.NODE_ENV !== 'production') {
-      app.listen(config.port, () => {
-        console.log(`Server running on port ${config.port}`);
-      });
-    }
-  } catch (error) {
-    console.error('Failed to start server:', error);
-  }
-};
-
-// Initialize test data function (same as before)
-const initializeTestData = async () => {
-  try {
+    // Create tenants if they don't exist
     const acmeTenant = await Tenant.findOne({ slug: 'acme' });
     if (!acmeTenant) {
       await Tenant.create({
@@ -48,11 +25,13 @@ const initializeTestData = async () => {
       });
     }
 
+    // Get tenant IDs
     const acme = await Tenant.findOne({ slug: 'acme' });
     const globex = await Tenant.findOne({ slug: 'globex' });
 
     if (!acme || !globex) return;
 
+    // Create test users
     const hashedPassword = await bcrypt.hash('password', 10);
     const testUsers = [
       { email: 'admin@acme.test', tenantId: acme._id, role: 'admin' },
@@ -76,8 +55,3 @@ const initializeTestData = async () => {
     console.error('Failed to initialize test data:', error);
   }
 };
-
-startServer();
-
-// Export the app for Vercel
-export default app;
