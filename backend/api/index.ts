@@ -25,7 +25,7 @@ const limiter = rateLimit({
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
-  'https://saas-task-manager.vercel.app',
+  'https://saas-task-manager-zlzy-lwtzlfgy1-first2lasts-projects.vercel.app',
   /^https:\/\/saas-task-manager-.*\.vercel\.app$/,
 ];
 
