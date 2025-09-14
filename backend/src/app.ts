@@ -23,7 +23,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
-      "https://saas-task-manager-zlzy-lwtzlfgy1-first2lasts-projects.vercel.app/",
+      "https://saas-task-manager-zlzy-lwtzlfgy1-first2lasts-projects.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
