@@ -6,6 +6,7 @@ const API_BASE_URL = import.meta.env.PROD
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
 });
 
 // Add request interceptor to include tenant and auth headers
