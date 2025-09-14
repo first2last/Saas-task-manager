@@ -14,19 +14,20 @@ const startServer = async () => {
     // Initialize test data
     await initializeTestData();
 
-    // Start server
-    app.listen(config.port, () => {
-      console.log(`Server running on port ${config.port}`);
-    });
+    // For Vercel, we don't need to listen on a port
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(config.port, () => {
+        console.log(`Server running on port ${config.port}`);
+      });
+    }
   } catch (error) {
     console.error('Failed to start server:', error);
-    process.exit(1);
   }
 };
 
+// Initialize test data function (same as before)
 const initializeTestData = async () => {
   try {
-    // Create tenants if they don't exist
     const acmeTenant = await Tenant.findOne({ slug: 'acme' });
     if (!acmeTenant) {
       await Tenant.create({
@@ -47,15 +48,12 @@ const initializeTestData = async () => {
       });
     }
 
-    // Get tenant IDs
     const acme = await Tenant.findOne({ slug: 'acme' });
     const globex = await Tenant.findOne({ slug: 'globex' });
 
     if (!acme || !globex) return;
 
-    // Create test users
     const hashedPassword = await bcrypt.hash('password', 10);
-
     const testUsers = [
       { email: 'admin@acme.test', tenantId: acme._id, role: 'admin' },
       { email: 'user@acme.test', tenantId: acme._id, role: 'member' },
@@ -80,3 +78,6 @@ const initializeTestData = async () => {
 };
 
 startServer();
+
+// Export the app for Vercel
+export default app;

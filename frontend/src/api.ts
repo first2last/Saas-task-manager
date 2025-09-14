@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://your-backend-domain.vercel.app'
+  ? 'https://saas-task-manager.vercel.app'
   : 'http://localhost:5000';
 
 export const api = axios.create({
