@@ -3,7 +3,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 
-// Import your routes (adjust paths)
+// Import your routes
 import authRoutes from '../lib/routes/authRoutes';
 import notesRoutes from '../lib/routes/notesRoutes';
 import tenantRoutes from '../lib/routes/tenantRoutes';
@@ -16,9 +16,9 @@ const app = express();
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
-  message: 'Too many requests from this IP'
+  message: 'Too many requests from this IP',
 });
 
 // CORS Configuration
@@ -30,21 +30,19 @@ const allowedOrigins = [
 ];
 
 const corsOptions: cors.CorsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.some(allowedOrigin => {
-      if (typeof allowedOrigin === 'string') {
-        return allowedOrigin === origin;
-      } else if (allowedOrigin instanceof RegExp) {
-        return allowedOrigin.test(origin);
-      }
-      return false;
-    });
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Allow non-browser clients (curl, Postman)
+
+    const isAllowed = allowedOrigins.some((allowedOrigin) =>
+      typeof allowedOrigin === 'string'
+        ? allowedOrigin === origin
+        : allowedOrigin.test(origin)
+    );
 
     if (isAllowed) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'), false);
     }
   },
@@ -52,10 +50,10 @@ const corsOptions: cors.CorsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id'],
   preflightContinue: false,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
-// Middleware
+// Apply middlewares
 app.use(limiter);
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -63,17 +61,24 @@ app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB and initialize data
+// MongoDB connection
 const connectDB = async () => {
   try {
-    if (mongoose.connections[0].readyState) {
+    if (mongoose.connection.readyState) {
       return;
     }
-    await mongoose.connect(process.env.MONGODB_URI!);
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      throw new Error('MONGODB_URI not set in environment');
+    }
+
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB');
+
     await initializeTestData();
   } catch (error) {
     console.error('Database connection failed:', error);
+    process.exit(1); // Exit if DB connection fails
   }
 };
 
@@ -86,10 +91,26 @@ app.use('/api/auth', authRoutes);
 app.use('/api/notes', notesRoutes);
 app.use('/api/tenants', tenantRoutes);
 
-// Handle root route
+// API Info route
 app.get('/api', (req, res) => {
-  res.json({ message: 'SaaS Notes API is running!' });
+  res.json({
+    message: 'SaaS Notes API is running!',
+    status: 'success',
+    endpoints: {
+      health: '/api/health',
+      auth: '/api/auth',
+      notes: '/api/notes',
+      tenants: '/api/tenants',
+    },
+  });
 });
 
-// Export the Express app as a serverless function
+// Root Route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Welcome to SaaS Notes API',
+  });
+});
+
+// Export the app
 export default app;
