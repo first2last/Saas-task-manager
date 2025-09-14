@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { NoteForm } from '../components/NoteForm';
 import { NotesList } from '../components/NotesList';
 import { UpgradePrompt } from '../components/UpgradePrompt';
-import { DowngradeButton } from '../components/DowngradeButton'; // ADD THIS IMPORT
+import { DowngradeButton } from '../components/DowngradeButton';
 import api from '../api';
 
 export const NotesPage: React.FC = () => {
   const { user, logout } = useAuth();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [noteCount, setNoteCount] = useState(0);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   useEffect(() => {
@@ -20,10 +19,11 @@ export const NotesPage: React.FC = () => {
     try {
       const response = await api.get('/notes');
       const count = response.data.length;
-      setNoteCount(count);
-      
+
       if (user?.tenant.plan === 'free' && count >= 3) {
         setShowUpgrade(true);
+      } else {
+        setShowUpgrade(false);
       }
     } catch (error) {
       console.error('Failed to fetch note count:', error);
@@ -36,7 +36,6 @@ export const NotesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
       <header className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -77,10 +76,9 @@ export const NotesPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {showUpgrade && <UpgradePrompt />}
-        <DowngradeButton /> {/* ADD THIS LINE */}
+        {user?.tenant.plan === 'pro' && <DowngradeButton />}
         <NoteForm onNoteCreated={handleNoteCreated} />
         <NotesList refreshTrigger={refreshTrigger} />
       </main>
